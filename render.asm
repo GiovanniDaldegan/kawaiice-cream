@@ -20,11 +20,18 @@
 
 .data
 
+
+.include "sprites/blococogu.data"
+.include "sprites/blococoraçao.data"
+
 .include "sprites/bala.data"
 .include "sprites/pirulito.data"
 .include "sprites/pudim.data"
 .include "sprites/bolo.data"
 .include "sprites/cupcake.data"
+
+.include "sprites/inimigo1.data"
+
 .include "sprites/player.data"
 
 
@@ -32,63 +39,58 @@
 
 GET_SPRITE:
 	# t0 de suporte para descobrir que sprite renderizar na celula em questão
-	# se a0 é 0, é uma célula vazia
-	beq	a0, zero, END_RENDER
-	
-	# a0 vale 1, então é um bloco inquebrável
-	li	t0, 1
-	beq	a0, t0, END_RENDER
 
+	# se a0 é 0, é uma célula vazia; se é 1, é um bloco inquebrável
+	li	t0, 1
+	ble	a0, t0, END_RENDER
+	
 	# bloco quebrável
 	li	t0, 2
-	beq	a0, t0, sprite01
+	beq	a0, t0, sprite02
 	
 	# coletável
 	li	t0, 3
-	beq	a0, t0, sprite02
+	beq	a0, t0, sprite03
 	
 	# bloco com objeto coletável
 	li	t0, 4
-	beq	a0, t0, sprite03
+	beq	a0, t0, sprite04
 	
 	# inimigo 1
 	li	t0, 5
-	beq	a0, t0, sprite04
-	
-	# inimigo 2
-	li	t0, 6
 	beq	a0, t0, sprite05
-	
+		
 	# jogador
 	li	t0, 9
-	beq	a0, t0, sprite08
+	beq	a0, t0, sprite06
 	
 	ret						# se o id não for reconhecido, não renderiza nada
 	
 sprite01:
-	la	a0, pudim
+	la	a0, blococoracao
 	j	RENDER
 
 sprite02:
-	la	a0, pirulito
+	la	a0, blococogu
 	j	RENDER
 
 sprite03:
-	la	a0, bala
+	la	a0, bolo
 	j	RENDER
 
 sprite04:
-	la	a0, bala
+	la	a0, blococogu
 	j	RENDER
-
+	
 sprite05:
-	la	a0, bala
+	la	a0, inimigo1
 	j	RENDER
-
-sprite08:
+	
+sprite06:
 	la	a0, player
 	j	RENDER
-
+	
+	
 RENDER:
 
 	# endereço do bitmap display

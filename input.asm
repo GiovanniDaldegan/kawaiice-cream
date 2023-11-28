@@ -8,34 +8,23 @@
 # Output:	a0: id da tecla pressionada
 ##################################################
 
+
 .data
 
-arrowUp:
-.byte 97
-
-arrowDown:
-.byte 0x0
-
-arrowRight:
-.byte
-
-arrowLeft:
-.byte
+enderecoInput:
+.word 0xff200000
 
 
 .text
 
 INPUT:
-	li	t1, 0xff200000
+	li	t1, enderecoInput
 	lb	a0, 4(t1)		# carrega a tecla pressionada (ASCII)
-	
-	la	t0, key
-	sb	a0, 0(t0)		# salva a tecla pressionada em "key" (ASCII)
 	
 	ret
 	
 CLEAR_INPUT:
-	li	t1, 0xff200000
-	sb	a0, 4(t1)
+	li	t1, enderecoInput
+	lb	zero, 4(t1)		# limpa a tecla da memória
 	
 	ret
