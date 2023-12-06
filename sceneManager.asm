@@ -10,8 +10,8 @@
 .data
 
 .include "maps/map1.data"
-#.include "scenes/map2.data"
-#.include "scenes/menu.data"
+.include "maps/fase2.data"
+
 
 .text
 

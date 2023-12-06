@@ -18,13 +18,16 @@ enderecoInput:
 .text
 
 INPUT:
-	li	t1, enderecoInput
+	la	t1, enderecoInput
+	lw	t1, 0(t1)
 	lb	a0, 4(t1)		# carrega a tecla pressionada (ASCII)
-	
+
+
 	ret
-	
+
 CLEAR_INPUT:
-	li	t1, enderecoInput
-	lb	zero, 4(t1)		# limpa a tecla da memória
-	
+	la	t1, enderecoInput
+	lw	t1, 0(t1)
+	sb	zero, 4(t1)		# limpa a tecla da memória
+
 	ret

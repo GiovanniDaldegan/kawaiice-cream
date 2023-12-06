@@ -11,11 +11,12 @@
 ##################################################
 #
 #		t0: endereço bitmap display
-#		t1: altura
-#		t2: largura
-#		t3: contadorY
-#		t4: contadorX
-#		t5: valores dos 4 pixels
+#		t1: endereço do bmp
+#		t2: altura
+#		t3: largura
+#		t4: contadorY
+#		t5: contadorX
+#		t6: valores dos 4 pixels
 
 
 .data
@@ -38,34 +39,32 @@
 .text
 
 GET_SPRITE:
-	# t0 de suporte para descobrir que sprite renderizar na celula em questão
-
 	# se a0 é 0, é uma célula vazia; se é 1, é um bloco inquebrável
 	li	t0, 1
 	ble	a0, t0, END_RENDER
-	
+
 	# bloco quebrável
 	li	t0, 2
 	beq	a0, t0, sprite02
-	
+
 	# coletável
 	li	t0, 3
 	beq	a0, t0, sprite03
-	
+
 	# bloco com objeto coletável
 	li	t0, 4
 	beq	a0, t0, sprite04
-	
+
 	# inimigo 1
 	li	t0, 5
 	beq	a0, t0, sprite05
-		
+
 	# jogador
 	li	t0, 9
 	beq	a0, t0, sprite06
-	
+
 	ret						# se o id não for reconhecido, não renderiza nada
-	
+
 sprite01:
 	la	a0, blococoracao
 	j	RENDER
@@ -73,7 +72,6 @@ sprite01:
 sprite02:
 	la	a0, blococogu
 	j	RENDER
-
 sprite03:
 	la	a0, bolo
 	j	RENDER
@@ -81,59 +79,61 @@ sprite03:
 sprite04:
 	la	a0, blococogu
 	j	RENDER
-	
+
 sprite05:
 	la	a0, inimigo1
 	j	RENDER
-	
+
+		
 sprite06:
 	la	a0, player
 	j	RENDER
-	
-	
-RENDER:
 
+
+RENDER:
 	# endereço do bitmap display
 	li	t0, 0xFF0
 	add	t0, t0, a1
 	slli	t0, t0, 20
-	
+
+
 	# calcula o offset x e y
-	li	t6, 320
-	mul	t6, t6, a4
-	add	t6, t6, a3
-	add	t0, t0, t6
-	
-	lw	t2, 0(a0) 			# largura
-	lw	t1, 4(a0)			# altura
-	
+	li	t2, 320
+	mul	t2, t2, a4			# pula as linhas ignoradas (320 x n de linhas)
+	add	t2, t2, a3			# pula as colunas ignoradas
+	add	t0, t0, t2			# ajusta o endereço no bitmap para iniciar o algoritmo com a posição desejada
+
+
+	lw	t3, 0(a0)			# t3: largura
+	lw	t2, 4(a0)			# t2: altura
+
 	addi	a0, a0, 8			# pula largura e altura
 
 	# início da renderização
-	li	t3, 0				# inicia a linha
+	li	t4, 0				# inicia a linha
 	
 start_line:
-	bge	t3, t1, END_RENDER		# se o contadorY chegar na última linha, termina a renderização
-	addi	t3, t3, 1
-	
-	li	t4, 0				# reseta o contadorX
-	
-render_pixels:
-	lw	t5, 0(a0)
-	sw	t5, 0(t0)			# colore
-	
-	addi	t4, t4, 4			# acança no contadorX
-	addi	a0, a0, 4			# avança no arquivo
-	addi	t0, t0, 4			# avança no display
+	bge	t4, t2, END_RENDER		# se o contadorY chegar na última linha, termina a renderização
+	addi	t4, t4, 1
 
-	bge	t4, t2, next_line		# se o contadorX chegar no último pixel, vai pra próxima linha
+	li	t5, 0				# reseta o contadorX
 
-	j	render_pixels
-	
+render_pixel:
+	lb	t6, 0(a0)			# carrega o pixel no .data
+	sb	t6, 0(t0)			# escreve no bitmap display
+
+	addi	t5, t5, 1			# avança no contadorX
+	addi	a0, a0, 1			# avança no arquivo
+	addi	t0, t0, 1			# avança no display
+
+	bge	t5, t3, next_line		# se o contadorX chegar no último pixel, vai pra próxima linha
+
+	j	render_pixel
+
 next_line:
 	addi	t0, t0, 320
-	sub	t0, t0, t2
-		
+	sub	t0, t0, t3
+
 	j	start_line
 
 END_RENDER:
