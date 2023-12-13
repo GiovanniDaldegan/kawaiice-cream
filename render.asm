@@ -1,15 +1,14 @@
-##################################################
+########################################################
 # render.s - KawaiIce Cream - Projeto ISC 2023-2
 #
-# Descrição: escreve os bytes de um bmp na
-# memória do bitmap display para renderização.
+# Descrição: escreve os bytes de um bmp na memória do
+# bitmap display para renderização.
 #
 # Input:	a0: id do sprite
 #		a1: frame (0, 1)
 #		a3: distância x do pivot
 #		a4: distância y do pivot
-##################################################
-#
+########################################################
 #		t0: endereço bitmap display
 #		t1: endereço do bmp
 #		t2: altura
@@ -17,7 +16,7 @@
 #		t4: contadorY
 #		t5: contadorX
 #		t6: valores dos 4 pixels
-
+########################################################
 
 .data
 
@@ -86,7 +85,34 @@ sprite05:
 
 		
 sprite06:
-	la	a0, player
+	la	t0, playerDirection
+	lb	t0, 0(t0)
+
+	beq	t0, zero, playerUp
+	
+	li	t1, 1
+	beq	t0, t1, playerLeft
+
+	li	t1, 2
+	beq	t0, t1, playerDown
+
+	li	t1, 3
+	beq	t0, t1, playerRight
+
+	playerUp:
+	la	a0, playercostas
+	j	RENDER
+
+	playerLeft:
+	la	a0, playeresquerda
+	j	RENDER
+
+	playerDown:
+	la	a0, playerbaixo
+	j	RENDER
+
+	playerRight:
+	la	a0, playerdireita
 	j	RENDER
 
 

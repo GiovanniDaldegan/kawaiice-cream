@@ -1,29 +1,38 @@
-##################################################
+########################################################
 #	KawaiIce Cream - ISC 2023-2
 # 
-# Projeto de ISC do 2º semestre de 2023. Jogo de-
-# senvolvido em Assembly na ISA RISC-V, inspirado
-# em Bad Ice Cream (Nitrome).
+# Projeto de ISC do 2º semestre de 2023. Jogo desenvol-
+# vido em Assembly na ISA RISC-V, inspirado em Bad Ice
+# Cream (Nitrome).
 # 
 # Realizado por: Giovanni, Michele, Rute
-##################################################
-
+########################################################
 .data
 
-frame:		.byte 0				# em qual frame renderizar
-sceneId:	.byte 0
-matrix:		.word 0				# word com o endereço da matriz atual (variável de acordo com o nível)
-playerPos:	.byte 12, 13			# posição do personagem na matriz
-key:		.byte 0				# tecla pressionada
-returnAddress:	.word 0				# word para salvar o ra quando forem necessários 2 "jals"
-
 .include "maps/fase1.data"
-.include "sprites/fundomapa1.data"
+
+
+returnAddress0:	.word 0				# word para salvar o ra quando forem necessários 2 "jals"
+returnAddress1:	.word 0				# word para salvar o ra quando forem necessários 3 "jals"
+
+frame:		.byte 0				# em qual frame renderizar
+key:		.byte 0				# tecla pressionada
+sceneId:	.byte 0				# id da cena atual
+matrix:		.word 0				# word com o endereço da matriz atual (variável de acordo com o nível)
+background:	.word 0				# word com o endereço do fundo atual
+
+timer:		.word 0
+cycleTimer:	.word 0
 
 
 .text
 
-MAIN:
+
+	jal	menu_setup			# prepara o menu
+
+
+# Loop principal do jogo
+MAIN_LOOP:
 	li	t0, 0xFF200604
 	lb	t1, 0(t0)			# carrega o frame
 
@@ -35,14 +44,6 @@ MAIN:
 	xori	t1, t1, 1			# se o frame for 0, vira 1; se é 1, vira 0
 	sb	t1, 0(t0)
 
-
-# [ Seleção de cena ]
-SCENE_SETUP:
-	la	t0, fase1
-	la	t1, matrix
-	sw	t0, 0(t1)			# define em qual endereço a matriz se baseia (de qual cena é a matriz)
-
-
 # [ Input ]
 GAME_INPUT:
 	jal	INPUT				# guarda a tecla pressionada em a0
@@ -50,96 +51,75 @@ GAME_INPUT:
 	sb	a0, 0(t0)			# salva a tecla em "key" (ASCII)
 
 
-# [ Lógica do jogo ]
+# [ Renderização do fundo ]
+render_background:
+	la	t0, fase1
+	la	t1, matrix
+	sw	t0, 0(t1)			# define em qual endereço a matriz se baseia (de qual cena é a matriz)
 
-	jal	PLAYER
+	la	a0, background			# carrega o fundo
+	lw	a0, 0(a0)
+	lw	t0, 0(t0)
+	beq	t0, zero, SCENE			# se o endereço do fundo for 0, pula a renderização dele
 
-
-# [ Renderização ]
-GAME_RENDER:
 	la	t0, frame
 	lb	a1, 0(t0)			# define em que frame renderizar
-
-render_background:
-	la	a0, fundomapa1
 	li	a3, 0
 	li	a4, 0
 
-	jal	RENDER
-
-render_matrix:
-	# s0: endereço na matriz
-	# s1: altura
-	# s2: largura
-	# s3: contadorY
-	# s4: contadorX
-
-	# s0: endereço da matriz
-	la	t0, matrix
-	lw	s0, 0(t0)			# s0: endereço inicial da matriz
-
-	# s2: largura, s1: altura
-	lw	s2, 0(s0)
-	lw	s1, 4(s0)
-
-	addi	s0, s0, 8			# pula largura e altura e avança para a matriz
-
-	# s3: contador Y
-	li	s3, 0
-
-line_loop:
-	addi	s3, s3, 1
-	bge	s3, s1, END_MAIN_RENDER		# se o contadorY for maior ou igual à altura, termina a renderização
-
-	# s4: contadorX
-	li	s4, 0
-
-cell_loop:
-	li	s5, 16				# tamanho de cada célula
-
-	mul	a3, s4, s5			# calcula a distância X da sprite (contadorX x 16)
-
-	addi	s3, s3, -1
-	mul	a4, s3, s5			# calcula a distância Y (contadorY x 16)
-	addi	s3, s3, 1
-
-	lb	a0, 0(s0)			# valor do id na célula
-
-	jal	GET_SPRITE			# executa o algoritmo de renderização
+	jal	RENDER				# renderiza o fundo
 
 
-	addi	s4, s4, 1			# soma 1 ao contadorX
-	addi	s0, s0, 1			# soma 1 ao enredeço da matriz
+# [ Lógica do jogo ]
+SCENE:
+	la	t2, sceneId
+	lb	t2, 0(t2)
 
-	bge	s4, s2, line_loop		# se o contadorX for igual ou maior à largura, inicia a próxima linha
+	beq	t2, zero, skipCandyCount
 
-	j	cell_loop			# senão, continua percorrendo a linha da matriz
+	li	t0, 3
+	bgt	t2, t0, skipCandyCount
+
+	la	t0, candyTotal
+	la	t1, candyCount
+
+	addi	t2, t2, -1
+
+	add	t0, t0, t2
+	add	t1, t1, t2
+
+	lb	t0, 0(t0)
+	lb	t1, 0(t1)
+
+	bge	t1, t0, next_scene
+
+	skipCandyCount:
 
 
-END_MAIN_RENDER:
-	# lui	t0, 0xFF000
-	# li	t1, 16
-	# li	t2, 320
+	j	SCENE_SETUP
 
-	# add	s4, s4, t1
-	# mul	s3, s3, t1
-	# mul	s3, s3, t2
-	# add	s4, s4, s3
-	# add	t0, t0, s4
 
-	# li	t6, 255
-	# sb	t6, 0(t0)
+# [ Música ]
 
+
+
+END_MAIN:
 	# reseta a tecla salva
 	jal	CLEAR_INPUT
 
 
-TICK:
+	# game tick
 	li	a7, 32
 	li	a0, 50
 	ecall
 
-	j	MAIN
+	j	MAIN_LOOP
+
+
+GAME_OVER:
+	j	reset
+
+
 
 
 EXIT:
@@ -148,9 +128,10 @@ EXIT:
 
 
 
+
 # Funções genéricas
 
-getCellAddress:
+get_cell_address:
 	########################################
 	# Dadas as coordenadas de uma célula na
 	# matriz, retorna o enredeço dela
@@ -160,6 +141,9 @@ getCellAddress:
 	# 
 	# Output:	a0: endereço
 	########################################
+	la	t0, returnAddress1
+	sw	ra, 0(t0)
+
 	la	t0, matrix
 	lw	t0, 0(t0)
 	lw	t1, 0(t0)			# t1: tamanho horizontal da matriz
@@ -173,12 +157,19 @@ getCellAddress:
 	add	t2, t2, a0			# calcula a coluna na linha
 	add	a0, t0, t2			# calcula o endereço da célula e guarda em a0
 
+
+	la	t0, returnAddress1
+	lw	ra, 0(t0)
 	ret
 
 
 
 .include "input.asm"
 .include "render.asm"
+.include "sceneManager.asm"
+.include "scenes.asm"				# NOTE: ver se esse arquivo é necessário
+.include "animationSystem.asm"
+
 .include "player.asm"
 
 
