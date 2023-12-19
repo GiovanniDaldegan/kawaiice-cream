@@ -16,8 +16,9 @@
 .include "maps/fase1.data"
 .include "maps/fase2.data"
 
-.include "sprites/fundomapa1.data"
 .include "sprites/fundomenu.data"
+.include "sprites/fundomapa1.data"
+.include "sprites/fundomapa2.data"
 
 
 escKey:		.byte 27
@@ -62,8 +63,12 @@ next_scene:
 
 select_scene:
 	# Argumento:	a0 - número de cenas que o programa irá pular
+	la	t0, playerDirection
+	li	t1, 2
+	sb	t1, 0(t0)
+
 	la	t0, sceneId
-	lb	t1, 0(t0)			# id da cena atual
+	lb	t1, 0(t0)			# t1: id da cena atual
 
 	add	t1, t1, a0
 	sb	t1, 0(t0)			# atualiza o sceneId
@@ -75,8 +80,8 @@ select_scene:
 	li	t2, 1
 	beq	t1, t2, level_1_setup
 
-	#li	t2, 2
-	#beq	t1, t2, level_2_setup
+	li	t2, 2
+	beq	t1, t2, level_2_setup
 
 	#li	t2, 3
 	#beq	t1, t2, level_3_setup
@@ -94,16 +99,13 @@ scene_switch:
 	li	t2, 1
 	beq	t1, t2, LEVEL_1
 
-	#li	t2, 2
-	#beq	t1, t2, level_2_loop
+	li	t2, 2
+	beq	t1, t2, LEVEL_2
 
-	#li	t2, 3
-	#beq	t1, t2, level_3_loop
-
-	li	t2, 4
+	li	t2, 3
 	beq	t1, t2, END_MAIN		# cena final
 
-	li	t2, 5
+	li	t2, 4
 	beq	t1, t2, END_MAIN		# cena de game over
 
 	li	t2, 5
@@ -119,11 +121,43 @@ menu_setup:
 
 	j	MENU
 
-
 level_1_setup:
+	la	t0, fase1
+	la	t1, fase1Copy
+
+	lw	t2, 0(t0)			# t2: largura
+	lw	t3, 4(t0)			# t3: altura
+
+	addi	t0, t0, 8			# pula largura e altura
+	addi	t1, t1, 8
+
+	li	t4, 0				# t4: contador Y
+	li	t3, 17				# NOTE: isso não era pra ser necessário. por algum motivo o loop para na linha 11 ???
+line_loop_1:
+	beq	t4, t3, finish_loop_1
+	addi	t4, t4, 1
+
+	li	t5, 0				# t5: contador X
+cell_loop_1:
+	lb	t6, 0(t0)
+	sb	t6, 0(t1)
+
+	addi	t0, t0, 1			# soma 1 no endereço original da matriz
+	addi	t1, t1, 1			# soma 1 na cópia
+	addi	t5, t5, 1			# soma 1 no contador
+
+	bge	t5, t3, line_loop_1
+
+	j	cell_loop_1
+
+finish_loop_1:
+	la	t0, fase1Copy
+	la	t1, matrix
+	sw	t0, 0(t1)			# define a matriz da fase 1
+
 	la	t0, background
 	la	t1, fundomapa1
-	sw	t1, 0(t0)
+	sw	t1, 0(t0)			# define o fundo da fase 1
 
 	la	t0, playerPos
 	li	t1, 12
@@ -132,8 +166,55 @@ level_1_setup:
 	sb	t1, 0(t0)
 	sb	t2, 1(t0)
 
-	j	LEVEL_1
-	
+	j	END_MAIN
+
+level_2_setup:
+	la	t0, fase2
+	la	t1, fase2Copy
+
+	lw	t2, 0(t0)			# t2: largura
+	lw	t3, 4(t0)			# t3: altura
+
+	addi	t0, t0, 8			# pula largura e altura
+	addi	t1, t1, 8
+
+	li	t4, 0				# t4: contador Y
+	li	t3, 17				# NOTE: isso não era pra ser necessário. por algum motivo o loop para na linha 11 ???
+line_loop_2:
+	beq	t4, t3, finish_loop_2
+	addi	t4, t4, 1
+
+	li	t5, 0				# t5: contador X
+cell_loop_2:
+	lb	t6, 0(t0)
+	sb	t6, 0(t1)
+
+	addi	t0, t0, 1			# soma 1 no endereço original da matriz
+	addi	t1, t1, 1			# soma 1 na cópia
+	addi	t5, t5, 1			# soma 1 no contador
+
+	bge	t5, t3, line_loop_2
+
+	j	cell_loop_2
+
+finish_loop_2:
+	la	t0, fase2Copy
+	la	t1, matrix
+	sw	t0, 0(t1)			# define o fundo da fase 1
+
+	la	t0, background
+	la	t1, fundomapa2
+	sw	t1, 0(t0)			# define o fundo da fase 1
+
+	la	t0, playerPos
+	li	t1, 15
+	li	t2, 4
+
+	sb	t1, 0(t0)			# define a posX
+	sb	t2, 1(t0)			# define a posY
+
+	j	END_MAIN
+
 
 reset:
 	# reseta os contadores de doce

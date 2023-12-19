@@ -25,6 +25,7 @@
 
 playerPos:	.byte 0, 0			# posição (x, y) do personagem na matriz
 playerDirection:.byte 2				# 0: up, 1: left, 2: down, 3: right
+playerState:	.byte 0				# 0: idle, 1: atacando
 
 wKey:		.byte 119
 aKey:		.byte 97
@@ -39,6 +40,9 @@ candyValue:	.byte 100
 PLAYER:
 	la	t0, returnAddress0
 	sw	ra, 0(t0)			# salva o valor do ra pra depois voltar pro main.asm
+
+	la	t0, playerState
+	sb	zero, 0(t0)			# reseta o estado do jogador
 
 	la	t0, playerPos
 	lb	s1, 0(t0)			# s1: posX
@@ -118,8 +122,12 @@ right:
 
 # [ Ações ]
 attack:
+	la	t0, playerState
+	li	t1, 1
+	sb	t1, 0(t0)			# define o estado do jogador como "atacando"
+
 	la	t0, playerDirection
-	lb	t0, 0(t0)
+	lb	t0, 0(t0)			# define a direção para qual o player está virado
 
 	beq	t0, zero, attack_up
 
@@ -244,12 +252,17 @@ attack_destroy_loop:
 
 eat:
 	# incrementar o contador de doces
-	la	t0, candyCount
-	lb	t1, 0(t0)
+	la	t0, sceneId
+	lb	t0, 0(t0)
+	addi	t0, t0, -1
 
-	addi	t1, t1, 1
+	la	t1, candyCount
+	add	t1, t1, t0
+	lb	t2, 0(t1)
 
-	sb	t1, 0(t0)
+	addi	t2, t2, 1
+
+	sb	t2, 0(t1)
 
 
 	# incrementar a pontuação total

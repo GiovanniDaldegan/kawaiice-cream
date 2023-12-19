@@ -21,8 +21,10 @@
 .data
 
 
+# Fase 1
 .include "sprites/blococogu.data"
-.include "sprites/blococoraçao.data"
+.include "sprites/blococoguitem.data"
+.include "sprites/blococoguquebra.data"
 
 .include "sprites/bala.data"
 .include "sprites/pirulito.data"
@@ -34,6 +36,19 @@
 
 .include "sprites/player.data"
 
+.include "sprites/playerassoprandoesquerda1.data"
+.include "sprites/playercostasassoprando.data"
+.include "sprites/playerassoprandofrente.data"
+.include "sprites/playerassoprandodireita.data"
+
+
+# Fase 2
+.include "sprites/blocoflor.data"
+.include "sprites/blocofloritem.data"
+.include "sprites/blocoflorquebra.data"
+
+.include "sprites/inimigo2.data"
+
 
 .text
 
@@ -42,49 +57,94 @@ GET_SPRITE:
 	li	t0, 1
 	ble	a0, t0, END_RENDER
 
+	la	t0, sceneId
+	lb	t0, 0(t0)
+	li	t1, 2
+	beq	t0, t1, get_sprite_level_2
+
+get_sprite_level_1:
 	# bloco quebrável
 	li	t0, 2
-	beq	a0, t0, sprite02
+	beq	a0, t0, sprite_01_1
 
 	# coletável
 	li	t0, 3
-	beq	a0, t0, sprite03
+	beq	a0, t0, sprite_02_1
 
 	# bloco com objeto coletável
 	li	t0, 4
-	beq	a0, t0, sprite04
+	beq	a0, t0, sprite_03_1
 
-	# inimigo 1
+	# inimigo
 	li	t0, 5
-	beq	a0, t0, sprite05
+	beq	a0, t0, sprite_04_1
 
 	# jogador
 	li	t0, 9
-	beq	a0, t0, sprite06
+	beq	a0, t0, sprite_05
 
 	ret						# se o id não for reconhecido, não renderiza nada
 
-sprite01:
-	la	a0, blococoracao
-	j	RENDER
 
-sprite02:
+# Sprites fase 1
+sprite_01_1:
 	la	a0, blococogu
 	j	RENDER
-sprite03:
+sprite_02_1:
 	la	a0, bolo
 	j	RENDER
 
-sprite04:
-	la	a0, blococogu
+sprite_03_1:
+	la	a0, blococoguitem
 	j	RENDER
 
-sprite05:
+sprite_04_1:
 	la	a0, inimigo1
 	j	RENDER
 
-		
-sprite06:
+
+get_sprite_level_2:
+	# bloco quebrável
+	li	t0, 2
+	beq	a0, t0, sprite_01_2
+
+	# coletável
+	li	t0, 3
+	beq	a0, t0, sprite_02_2
+
+	# bloco com objeto coletável
+	li	t0, 4
+	beq	a0, t0, sprite_03_2
+
+	# inimigo
+	li	t0, 5
+	beq	a0, t0, sprite_04_2
+
+	# jogador
+	li	t0, 9
+	beq	a0, t0, sprite_05
+
+	ret						# se o id não for reconhecido, não renderiza nada
+
+
+# Sprites fase 2
+sprite_01_2:
+	la	a0, blocoflor
+	j	RENDER
+sprite_02_2:
+	la	a0, bolo
+	j	RENDER
+
+sprite_03_2:
+	la	a0, blocofloritem
+	j	RENDER
+
+sprite_04_2:
+	la	a0, inimigo2
+	j	RENDER
+
+
+sprite_05:
 	la	t0, playerDirection
 	lb	t0, 0(t0)
 
@@ -101,18 +161,46 @@ sprite06:
 
 	playerUp:
 	la	a0, playercostas
+
+	la	t0, playerState
+	lb	t0, 0(t0)
+	beq	t0, zero, RENDER
+
+	la	a0, playercostasassoprando
+
 	j	RENDER
 
 	playerLeft:
 	la	a0, playeresquerda
+
+	la	t0, playerState
+	lb	t0, 0(t0)
+	beq	t0, zero, RENDER
+
+	la	a0, playerassoprandoesquerda1
+
 	j	RENDER
 
 	playerDown:
 	la	a0, playerbaixo
+
+	la	t0, playerState
+	lb	t0, 0(t0)
+	beq	t0, zero, RENDER
+
+	la	a0, playerassoprandofrente
+
 	j	RENDER
 
 	playerRight:
 	la	a0, playerdireita
+
+	la	t0, playerState
+	lb	t0, 0(t0)
+	beq	t0, zero, RENDER
+
+	la	a0, playerassoprandodireita
+
 	j	RENDER
 
 

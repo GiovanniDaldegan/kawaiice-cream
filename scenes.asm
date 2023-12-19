@@ -8,9 +8,12 @@
 
 .data
 
-candyTotal:	.byte 16, 20, 20
+candyTotal:	.byte 16, 14, 20
 candyCount:	.byte 0, 0, 0			# a quantidade de doces pra coletar em cada mapa
 points:		.word 0				# pontuação total
+
+enemyPosMap1:	.byte 0, 0, 0, 0, 0, 0, 0, 0
+enemyPosMap2:	.byte 0, 0, 0, 0, 0, 0, 0, 0
 
 
 .text
@@ -48,20 +51,6 @@ LEVEL_2:
 	jal	RENDER_MATRIX			# scenes.asm
 
 	j	END_MAIN
-
-
-# [[ Nível 3 ]]
-LEVEL_3:
-	jal	PLAYER				# player.asm
-
-	la	t0, frame
-	lb	t0, 0(t0)
-	mv	a1, t0
-
-	jal	RENDER_MATRIX			# scenes.asm
-
-	j	END_MAIN
-
 
 
 

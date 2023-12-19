@@ -1,15 +1,17 @@
 ########################################################
-#	KawaiIce Cream - ISC 2023-2
+#		KawaiIce Cream - ISC 2023-2
 # 
 # Projeto de ISC do 2º semestre de 2023. Jogo desenvol-
 # vido em Assembly na ISA RISC-V, inspirado em Bad Ice
 # Cream (Nitrome).
 # 
-# Realizado por: Giovanni, Michele, Rute
+# Realizado por:	Giovanni Daldegan
+#			Michele Nakagomi Lebarbenchon
+#			Rute Alves Fernandes
 ########################################################
-.data
 
-.include "maps/fase1.data"
+
+.data
 
 
 returnAddress0:	.word 0				# word para salvar o ra quando forem necessários 2 "jals"
@@ -26,7 +28,6 @@ cycleTimer:	.word 0
 
 
 .text
-
 
 	jal	menu_setup			# prepara o menu
 
@@ -53,10 +54,6 @@ GAME_INPUT:
 
 # [ Renderização do fundo ]
 render_background:
-	la	t0, fase1
-	la	t1, matrix
-	sw	t0, 0(t1)			# define em qual endereço a matriz se baseia (de qual cena é a matriz)
-
 	la	a0, background			# carrega o fundo
 	lw	a0, 0(a0)
 	lw	t0, 0(t0)
@@ -120,8 +117,6 @@ GAME_OVER:
 	j	reset
 
 
-
-
 EXIT:
 	li a7, 10
 	ecall
@@ -168,8 +163,5 @@ get_cell_address:
 .include "render.asm"
 .include "sceneManager.asm"
 .include "scenes.asm"				# NOTE: ver se esse arquivo é necessário
-.include "animationSystem.asm"
 
 .include "player.asm"
-
-
