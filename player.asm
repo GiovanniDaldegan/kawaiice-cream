@@ -258,6 +258,8 @@ attack_destroy_loop:
 
 
 eat:
+	jal	sfx_collectible
+
 	# incrementar o contador de doces
 	la	t0, sceneId
 	lb	t0, 0(t0)
@@ -283,6 +285,8 @@ eat:
 	j	update_player
 
 die:
+	jal	sfx_player_death
+
 	# TODO: select scene pra tela de game over
 	j	EXIT
 

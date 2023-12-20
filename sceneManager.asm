@@ -66,6 +66,8 @@ select_level_3:
 	li	a0, 3
 	j	select_scene
 
+# next_level (efeitos sonoros e select_scene)
+
 next_scene:
 	li	a0, 1
 	j	select_scene

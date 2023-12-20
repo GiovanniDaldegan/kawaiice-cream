@@ -20,7 +20,7 @@ points:		.word 0				# pontuação total
 
 # [[ MENU ]]
 MENU:
-	# TODO: seleção de fase
+	# TODO: seleção de fase (input)
 
 	j	END_MAIN
 
