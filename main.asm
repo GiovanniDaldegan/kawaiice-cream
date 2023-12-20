@@ -23,9 +23,9 @@ sceneId:	.byte 0				# id da cena atual
 matrix:		.word 0				# word com o endereço da matriz atual (variável de acordo com o nível)
 background:	.word 0				# word com o endereço do fundo atual
 
+currentTime:	.word
 timer:		.word 0
 cycleTimer:	.word 0
-
 
 .text
 
@@ -97,9 +97,10 @@ SCENE:
 
 
 # [ Música ]
+MUSIC:
 
 
-
+# Fim do ciclo do loop principal
 END_MAIN:
 	# reseta a tecla salva
 	jal	CLEAR_INPUT
@@ -112,11 +113,7 @@ END_MAIN:
 
 	j	MAIN_LOOP
 
-
-GAME_OVER:
-	j	reset
-
-
+# Sair
 EXIT:
 	li a7, 10
 	ecall
@@ -136,8 +133,6 @@ get_cell_address:
 	# 
 	# Output:	a0: endereço
 	########################################
-	la	t0, returnAddress1
-	sw	ra, 0(t0)
 
 	la	t0, matrix
 	lw	t0, 0(t0)
@@ -152,9 +147,6 @@ get_cell_address:
 	add	t2, t2, a0			# calcula a coluna na linha
 	add	a0, t0, t2			# calcula o endereço da célula e guarda em a0
 
-
-	la	t0, returnAddress1
-	lw	ra, 0(t0)
 	ret
 
 
@@ -163,5 +155,3 @@ get_cell_address:
 .include "render.asm"
 .include "sceneManager.asm"
 .include "scenes.asm"				# NOTE: ver se esse arquivo é necessário
-
-.include "player.asm"

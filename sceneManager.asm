@@ -20,12 +20,22 @@
 .include "sprites/fundomapa1.data"
 .include "sprites/fundomapa2.data"
 
+.include "sprites/capabmp.data"
+.include "sprites/gameoverbmp.data"
+.include "sprites/telafinal.data"
+#.include "sprites/"
+
+#Pausebmp.data
 
 escKey:		.byte 27
 nKey:		.byte 110
 1Key:		.byte 49
 2Key:		.byte 50
 3Key:		.byte 51
+
+enemysPos1: 	.byte 7, 2, 19, 3, 6, 13, 18, 14
+enemysPos2: 	.byte 12, 2, 19, 3, 6, 13, 18, 14
+
 
 
 .text
@@ -83,10 +93,13 @@ select_scene:
 	li	t2, 2
 	beq	t1, t2, level_2_setup
 
-	#li	t2, 3
-	#beq	t1, t2, level_3_setup
+	li	t2, 3
+	beq	t1, t2, the_end_setup
 
 	li	t2, 4
+	beq	t1, t2, game_over_setup
+
+	li	t2, 5
 	bge	t1, t2, menu_setup
 
 	j	END_MAIN
@@ -103,10 +116,10 @@ scene_switch:
 	beq	t1, t2, LEVEL_2
 
 	li	t2, 3
-	beq	t1, t2, END_MAIN		# cena final
+	beq	t1, t2, THE_END			# cena final
 
 	li	t2, 4
-	beq	t1, t2, END_MAIN		# cena de game over
+	beq	t1, t2, GAME_OVER		# cena de game over
 
 	li	t2, 5
 	bge	t1, t2, reset
@@ -116,12 +129,36 @@ scene_switch:
 
 menu_setup:
 	la	t0, background
-	la	t1, fundomenu
+	la	t1, capabmp
 	sw	t1, 0(t0)
 
 	j	MENU
 
+game_over_setup:
+	la	t0, background
+	la	t1, gameoverbmp
+	sw	t1, 0(t0)
+
+	j	GAME_OVER
+
+the_end_setup:
+	la	t0, background
+	la	t1, telafinal
+	sw	t1, 0(t0)
+
+	j	GAME_OVER
+
 level_1_setup:
+	la	t0, timer
+	li	t1, 180
+	sw	t1, 0(t0)			# define o tempo da fase
+
+	la	a7, 30
+	ecall
+	la	t0, cycleTimer
+	sw	a0, 0(t0)			# define o tempo do primeiro instante da fase
+
+
 	la	t0, fase1
 	la	t1, fase1Copy
 
@@ -159,6 +196,7 @@ finish_loop_1:
 	la	t1, fundomapa1
 	sw	t1, 0(t0)			# define o fundo da fase 1
 
+	# setup jogador
 	la	t0, playerPos
 	li	t1, 12
 	li	t2, 13
@@ -166,9 +204,50 @@ finish_loop_1:
 	sb	t1, 0(t0)
 	sb	t2, 1(t0)
 
+	# setup inimigos
+# 	la	t0, enemysPos1
+# 	la	t1, enemysPos
+# 	la	t2, enemysDirections
+
+# 	li	t3, 0				# t5: contador de inimigos
+# setup_enemys_loop_1:
+# 	li	t4, 4
+# 	bge	t3, t4, finish_enemys_setup_1
+
+# 	lb	t4, 0(t0)
+# 	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
+
+# 	lb	t4, 1(t0)
+# 	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
+
+# 	li	t4, 2
+# 	sb	t4, 0(t2)
+
+# 	addi	t0, t0, 2
+# 	addi	t1, t1, 2
+# 	addi	t2, t2, 1
+
+# 	addi	t3, t3, 1
+
+# 	j	setup_enemys_loop_1
+
+# finish_enemys_setup_1:
+
+
 	j	END_MAIN
 
+
 level_2_setup:
+	la	t0, timer
+	li	t1, 180
+	sw	t1, 0(t0)			# define o tempo da fase
+
+	la	a7, 30
+	ecall
+	la	t0, cycleTimer
+	sw	a0, 0(t0)			# define o tempo do primeiro instante da fase
+
+
 	la	t0, fase2
 	la	t1, fase2Copy
 
@@ -206,12 +285,43 @@ finish_loop_2:
 	la	t1, fundomapa2
 	sw	t1, 0(t0)			# define o fundo da fase 1
 
+	# setup jogador
 	la	t0, playerPos
 	li	t1, 15
 	li	t2, 4
 
 	sb	t1, 0(t0)			# define a posX
 	sb	t2, 1(t0)			# define a posY
+
+
+	# setup inimigos
+# 	la	t0, enemysPos2
+# 	la	t1, enemysPos
+# 	la	t2, enemysDirections
+
+# 	li	t3, 0				# t5: contador de inimigos
+# setup_enemys_loop_2:
+# 	li	t4, 4
+# 	bge	t3, t4, finish_enemys_setup_2
+
+# 	lb	t4, 0(t0)
+# 	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
+
+# 	lb	t4, 1(t0)
+# 	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
+
+# 	li	t4, 2
+# 	sb	t4, 0(t2)
+
+# 	addi	t0, t0, 2
+# 	addi	t1, t1, 2
+# 	addi	t2, t2, 1
+
+# 	addi	t3, t3, 1
+
+# 	j	setup_enemys_loop_2
+
+# finish_enemys_setup_2:
 
 	j	END_MAIN
 

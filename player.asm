@@ -122,6 +122,7 @@ right:
 
 # [ Ações ]
 attack:
+
 	la	t0, playerState
 	li	t1, 1
 	sb	t1, 0(t0)			# define o estado do jogador como "atacando"
@@ -175,19 +176,22 @@ attack_first_block:
 
 	lb	t0, 0(a0)
 	
-	beq	t0, zero, attack_create_loop		# se o id da célula for 0, ele vai criar blocos
+	beq	t0, zero, attack_create_sfx	# se o id da célula for 0, ele vai criar blocos
 
 	li	t1, 3
-	beq	t0, t1, attack_create_loop	# se o id da célula for 3, ele vai criar blocos
+	beq	t0, t1, attack_create_sfx	# se o id da célula for 3, ele vai criar blocos
 
 	li	t1, 2
-	beq	t0, t1, attack_destroy_loop	# se o id da célula for 2, ele vai quebrar blocos
+	beq	t0, t1, attack_destroy_sfx	# se o id da célula for 2, ele vai quebrar blocos
 
 	li	t1, 4
-	beq	t0, t1, attack_destroy_loop	# se o id da célula for 4, ele vai quebrar blocos
+	beq	t0, t1, attack_destroy_sfx	# se o id da célula for 4, ele vai quebrar blocos
 
 
 	j	FINISH_PLAYER			# se nenhum desses for o caso, retorna ao algoritmo do nível
+
+attack_create_sfx:
+	jal	sfx_create_block
 
 attack_create_loop:
 	add	s1, s1, s3
@@ -218,6 +222,9 @@ attack_create_loop:
 
 	j	attack_create_loop
 
+
+attack_destroy_sfx:
+	jal	sfx_break_block
 
 attack_destroy_loop:
 	add	s1, s1, s3
@@ -276,7 +283,8 @@ eat:
 	j	update_player
 
 die:
-	j	GAME_OVER
+	# TODO: select scene pra tela de game over
+	j	EXIT
 
 
 check_move:
