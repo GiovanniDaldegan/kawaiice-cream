@@ -27,10 +27,11 @@
 .include "sprites/blococoguquebra.data"
 
 .include "sprites/bala.data"
+.include "sprites/cupcake.data"
 .include "sprites/pirulito.data"
 .include "sprites/pudim.data"
 .include "sprites/bolo.data"
-.include "sprites/cupcake.data"
+.include "sprites/donut.data"
 
 .include "sprites/inimigo1.data"
 
@@ -55,7 +56,7 @@
 GET_SPRITE:
 	# se a0 é 0, é uma célula vazia; se é 1, é um bloco inquebrável
 	li	t0, 1
-	ble	a0, t0, END_RENDER
+	beq	a0, t0, END_RENDER
 
 	la	t0, sceneId
 	lb	t0, 0(t0)
@@ -63,6 +64,8 @@ GET_SPRITE:
 	beq	t0, t1, get_sprite_level_2
 
 get_sprite_level_1:
+	#beq	a0, zero, block_collectible		# buga tudo
+
 	# bloco quebrável
 	li	t0, 2
 	beq	a0, t0, sprite_01_1
@@ -70,10 +73,6 @@ get_sprite_level_1:
 	# coletável
 	li	t0, 3
 	beq	a0, t0, sprite_02_1
-
-	# bloco com objeto coletável
-	li	t0, 4
-	beq	a0, t0, sprite_03_1
 
 	# inimigo
 	li	t0, 5
@@ -85,17 +84,59 @@ get_sprite_level_1:
 
 	ret						# se o id não for reconhecido, não renderiza nada
 
-
 # Sprites fase 1
 sprite_01_1:
 	la	a0, blococogu
 	j	RENDER
+
 sprite_02_1:
-	la	a0, bolo
+	la	t0, candyType
+	lb	t0, 0(t0)
+
+	li	t2, 1
+
+	beq	t0, t2, sprite_candy_1_2
+
+sprite_candy_1_1:
+	la	a0, bala
+
 	j	RENDER
 
+sprite_candy_1_2:
+	la	a0, cupcake
+
+	j	RENDER
+
+block_collectible:
+	
+	#
+	mv	t6, a0
+	mv	t5, a1
+	mv	t4, a2
+	#
+
+	mv	a0, s4
+	mv	a1, s3
+	la	a2, matrix_candy
+	lw	a2, 0(a2)
+	jal	get_cell_address_candy
+
+
+	lb	t0, 0(a0)
+	li	t1, 3
+	#
+	mv	a0, t6
+	mv	a1, t5
+	mv	a2, t4
+	#
+	beq	t0, t1, sprite_03_1
+
+	j	END_RENDER
+
 sprite_03_1:
+	j	END_RENDER
 	la	a0, blococoguitem
+	
 	j	RENDER
 
 sprite_04_1:
@@ -104,6 +145,8 @@ sprite_04_1:
 
 
 get_sprite_level_2:
+	#beq	a0, zero, block_collectible
+
 	# bloco quebrável
 	li	t0, 2
 	beq	a0, t0, sprite_01_2
@@ -132,8 +175,38 @@ sprite_01_2:
 	la	a0, blocoflor
 	j	RENDER
 sprite_02_2:
-	la	a0, bolo
+	la	t0, candyType
+	lb	t0, 0(t0)
+
+	li	t2, 1
+
+	beq	t0, t2, sprite_candy_2_2
+
+sprite_candy_2_1:
+	la	a0, pirulito
+
 	j	RENDER
+
+sprite_candy_2_2:
+	la	a0, donut
+
+	j	RENDER
+
+
+block_collectible:
+	j EXIT
+	mv	a0, s4
+	mv	a1, s3
+	la	a2, matrix_candy
+	lw	a2, 0(a2)
+	jal	get_cell_address_candy
+
+	lb	t0, 0(a0)
+	li	t1, 3
+	beq	t0, t1, sprite_03_2
+
+	ret
+
 
 sprite_03_2:
 	la	a0, blocofloritem

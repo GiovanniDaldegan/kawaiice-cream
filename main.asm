@@ -73,10 +73,10 @@ SCENE:
 	la	t2, sceneId
 	lb	t2, 0(t2)
 
-	beq	t2, zero, skipCandyCount
+	beq	t2, zero, skip_candy_count
 
 	li	t0, 3
-	bge	t2, t0, skipCandyCount
+	bge	t2, t0, skip_candy_count
 
 	la	t0, candyTotal
 	la	t1, candyCount
@@ -89,9 +89,50 @@ SCENE:
 	lb	t0, 0(t0)			# carrega o candyTotal de acordo com a fase (sceneId - 1)
 	lb	t1, 0(t1)			# carrega o candyCount de acordo com a fase (sceneId - 1)
 
+
+	la	t3, candyType
+	lb	t4, 0(t3)
+
+	beq	t4, zero, check_next_candy	# checa em qual doce do nível tá
+
+	j	check_level
+
+	check_next_candy:
+
+	beq	t1, t0, next_candy
+
+	j	check_level
+
+	next_candy:
+	li	t4, 1
+	sb	t4, 0(t3)
+
+	la	t0, candyCount
+	sb	zero, 0(t0)
+	sb	zero, 1(t0)
+
+	bne	t2, zero, next_candy_2
+
+	next_candy_1:
+	la	t0, matrix_candy
+	la	t1, fase1Doces2Copy
+	sw	t1, 0(t0)
+
+	j	skip_candy_count
+
+	next_candy_2:
+	la	t0, matrix_candy
+	la	t1, fase2Doces2Copy
+	sw	t1, 0(t0)
+
+	j	skip_candy_count
+
+	# puxa a segunda matriz
+
+	check_level:
 	bge	t1, t0, level_complete
 
-	skipCandyCount:
+	skip_candy_count:
 
 
 	j	SCENE_SETUP
@@ -150,6 +191,59 @@ get_cell_address:
 
 	ret
 
+get_cell_address_candy:
+	########################################
+	# Dadas as coordenadas de uma célula na
+	# matriz, retorna o enredeço dela
+	# 
+	# Input:	a0: posX
+	# 		a1: posY
+	# 		a2: matriz
+	# 
+	# Output:	a0: endereço
+	########################################
+
+	lw	t1, 0(a2)			# t1: tamanho horizontal da matriz
+
+	addi	a2, a2, 8			# pula largura e altura
+
+	addi	a0, a0, -1
+	addi	a1, a1, -1
+
+	mul	t2, a1, t1			# calcula a linha
+	add	t2, t2, a0			# calcula a coluna na linha
+	add	a0, a2, t2			# calcula o endereço da célula e guarda em a0
+
+	ret
+
+copy_matrix:
+	# a0: endereço matriz 1
+	# a1; endereço matriz 2
+
+	lw	t0, 0(a0)			# t0: largura
+	lw	t1, 4(a0)			# t1: altura
+
+	mul	t0, t0, t1
+	addi	t0, t0, -1			# t0: n de células
+
+	addi	a0, a0, 8
+	addi	a1, a1, 8
+
+	li	t1, 0
+	copy_matrix_loop:
+	bge	t1, t0, finish_copy
+
+	lb	t2, 0(a0)
+	sb	t2, 0(a1)
+
+	addi	a0, a0, 1
+	addi	a1, a1, 1
+	addi	t1, t1, 1
+
+	j	copy_matrix_loop
+
+	finish_copy:
+	ret
 
 
 .include "input.asm"

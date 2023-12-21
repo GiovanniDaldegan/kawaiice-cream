@@ -19,6 +19,8 @@ enemysDirections:.byte 2, 2, 2, 2
 
 enemyCycleTimer:.word 0
 
+porra: .string "\n"
+
 
 .text
 
@@ -26,8 +28,12 @@ ENEMY:
 	la	t0, returnAddress0
 	sw	ra, 0(t0)
 
+	li	s0, 0				# s0: contador de inimigos
+
 	la	t0, currentTime
 	lw	t0, 0(t0)
+
+	srli	t0, t0, 1
 
 	la	t1, enemyCycleTimer
 	lw	t2, 0(t1)
@@ -36,10 +42,8 @@ ENEMY:
 	li	t3, 100
 	blt	t2, t3, enemy_return		# se o inimigo já tiver andando nos últimos 500 ms, volta para o código da fase
 
-	j EXIT
-	sw	t0, 0(t1)
 
-	li	s0, 0
+	sw	t0, 0(t1)			# salva o tempo da última atualização dos inimigos
 
 enemy_loop:
 	li	t0, 4
@@ -60,46 +64,54 @@ enemy_loop:
 	sb	zero, 0(a0)			# limpa o espaço que o inimigo está ocupando na matriz
 
 
+	# Movimentação
+
 	la	t0, sceneId
+	lb	t0, 0(t0)
 	li	t1, 1
 	beq	t0, t1, enemy_move		# se estiver no nível 1, não roda o código de teletransporte
 
-	j	enemy_move
 
 	# Teletransporte
 	li	a7, 42
 	li	a0, 0
-	li	a1, 19
+	li	a1, 99
 	ecall
 
-	beq	a0, zero, enemy_move		# 5% de chance do inimigo teletransportar
+	beq	a0, zero, enemy_move		# 1% de chance do inimigo teletransportar
 
+	j	enemy_move
 
 	li	a7, 42
 	li	a0, 6
 	li	a1, 19
 	ecall
-	mv	s3, a0				# s0: inteiro pseudo-aleatório no intervalo [6, 19]
+	mv	s3, a0				# s3: inteiro pseudo-aleatório no intervalo [6, 19]
 	
 	li	a7, 42
 	li	a0, 2
 	li	a1, 14
 	ecall
-	mv	s4, a0				# s3: inteiro pseudo-aleatório no intervalo [2, 14]
+	mv	s4, a0				# s4: inteiro pseudo-aleatório no intervalo [2, 14]
 
 	mv	a0, s3
 	mv	a1, s4
 	jal	get_cell_address
 
-	j	set_enemy_pos
+	lb	t0, 0(a0)
+	beq	t0, zero, set_enemy_pos
+
+	j	enemy_move
 
 
 # Movimentação padrão
 enemy_move:
+	# t2: contador de tentativas de movimento
+	li	t2, 0
+
 	mv	s3, s1
 	mv	s4, s2
 
-	# t2: contador de tentativas de movimentoX
 	la	t0, enemysDirections
 
 	add	t0, t0, s0
@@ -117,17 +129,25 @@ enemy_move:
 	li	t1, 3
 	beq	t0, t1, enemy_move_right	# 3: direita
 
-	j	enemy_give_up
 
 enemy_move_up:
 	jal	check_move_attempts
 
+	mv	s3, s1
+	mv	s4, s2
 	addi	s4, s4, -1
 
-	mv	a0, s1
+	mv	a0, s3
 	mv	a1, s4
 	jal	get_cell_address
 	lb	t0, 0(a0)
+
+
+	la	t1, enemysDirections
+	add	t1, t1, s0
+	li	t2, 0
+	sb	t2, 0(t1)			# atualiza a direção (0)
+
 
 	beq	t0, zero, set_enemy_pos
 
@@ -137,12 +157,21 @@ enemy_move_up:
 enemy_move_down:
 	jal	check_move_attempts
 
+	mv	s3, s1
+	mv	s4, s2
 	addi	s4, s4, 1
 
 	mv	a0, s3
 	mv	a1, s4
 	jal	get_cell_address
 	lb	t0, 0(a0)
+
+
+	la	t1, enemysDirections
+	add	t1, t1, s0
+	li	t2, 2
+	sb	t2, 0(t1)			# atualiza a direção (2)
+
 
 	beq	t0, zero, set_enemy_pos
 
@@ -152,12 +181,21 @@ enemy_move_down:
 enemy_move_left:
 	jal	check_move_attempts
 
+	mv	s3, s1
 	addi	s3, s3, -1
+	mv	s4, s2
 
 	mv	a0, s3
 	mv	a1, s4
 	jal	get_cell_address
 	lb	t0, 0(a0)
+
+
+	la	t1, enemysDirections
+	add	t1, t1, s0
+	li	t2, 1
+	sb	t2, 0(t1)			# atualiza a direção (1)
+
 
 	beq	t0, zero, set_enemy_pos
 
@@ -167,12 +205,21 @@ enemy_move_left:
 enemy_move_right:
 	jal	check_move_attempts
 
+	mv	s3, s1
 	addi	s3, s3, 1
+	mv	s4, s2
 
 	mv	a0, s3
 	mv	a1, s4
 	jal	get_cell_address
 	lb	t0, 0(a0)
+
+
+	la	t1, enemysDirections
+	add	t1, t1, s0
+	li	t2, 3
+	sb	t2, 0(t1)			# atualiza a direção (3)
+
 
 	beq	t0, zero, set_enemy_pos
 
@@ -187,19 +234,39 @@ check_move_attempts:
 	ret
 
 enemy_give_up:
-	mv	a0, s1
-	mv	a1, s2
-
-	jal	get_cell_address
+	mv	s3, s1
+	mv	s4, s2
 
 	j	set_enemy_pos
 
 
 set_enemy_pos:
+	mv	a0, s3
+	mv	a1, s4
+	jal	get_cell_address		# calcula o endereço a partir de s3 e s4
+
 	li	t0, 5
-	sb	t0, 0 (a0)			# posiciona o inimigo na nova célula
+	sb	t0, 0(a0)			# posiciona o inimigo na nova célula
 
 	addi	s0, s0, 1
+
+	la	t0, enemysPos
+	li	t1, 2
+	mul	t1, s0, t1
+	add	t0, t0, t1
+
+	sb	s3, 0(t0)
+	sb	s4, 1(t0)
+
+	# teste
+	#li	a7, 1
+	#mv	a0, s0
+	#ecall
+	#li	a7, 4
+	#la	a0, porra
+	#ecall
+
+
 
 	j	enemy_loop
 

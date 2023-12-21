@@ -13,11 +13,14 @@ key2:		.byte 50
 key3:		.byte 51
 
 candyTotal:	.byte 16, 14, 20
-candyCount:	.byte 0, 0, 0			# a quantidade de doces pra coletar em cada mapa
+candyCount:	.byte 0, 0			# a quantidade de doces pra coletar em cada mapa
+candyType:	.byte 0
 points:		.word 0				# pontuação total
 
 musicTimer:	.word 0				# tempo em ms de quando iniciou da última nota
 musicCounter:	.word -1				# contador das notas da música
+
+matrix_candy:	.word 0
 
 
 .text
@@ -28,7 +31,7 @@ musicCounter:	.word -1				# contador das notas da música
 # [[ MENU ]]
 MENU:
 	la	t2, musicCounter
-	lb	t1, 0(t2)
+	lw	t1, 0(t2)
 
 	la	t3, song_size
 	lw	t3, 0(t3)
@@ -65,7 +68,7 @@ play_music:
 	la	t4, song_notes
 	add	t4, t4, t1
 	lb	a0, 0(t4)
-	
+
 	mv	a1, t5				#duração 
 	li	a2, 10				#intrumento
 	li	a3, 65				#volume
@@ -74,8 +77,6 @@ play_music:
 
 	sw	t0, 0(t3)			# atualiza o musicTimer
 	sw	t1, 0(t2)			# salva o musicCounter
-
-
 
 skip_play_music:
 	la	t0, key
@@ -168,6 +169,11 @@ skip_timer_1:
 	lb	t0, 0(t0)
 	mv	a1, t0
 
+	la	s0, matrix_candy
+	lw	s0, 0(s0)
+	jal	render_candy
+
+
 	jal	RENDER_MATRIX
 
 	j	END_MAIN
@@ -205,11 +211,16 @@ LEVEL_2:
 skip_timer_2:
 	jal	PLAYER				# player.asm
 
-	#jal	ENEMY
+	jal	ENEMY
 
 	la	t0, frame
 	lb	t0, 0(t0)
 	mv	a1, t0
+
+	la	s0, matrix_candy
+	lw	s0, 0(s0)
+	jal	render_candy
+
 
 	jal	RENDER_MATRIX
 
@@ -225,13 +236,14 @@ RENDER_MATRIX:
 	# s3: contadorY
 	# s4: contadorX
 
-	la	t0, returnAddress0
-	sw	ra, 0(t0)
-
-
 	# s0: endereço da matriz
 	la	t0, matrix
 	lw	s0, 0(t0)			# s0: endereço inicial da matriz
+
+
+render_candy:
+	la	t0, returnAddress0
+	sw	ra, 0(t0)
 
 	# s2: largura, s1: altura
 	lw	s2, 0(s0)
@@ -256,11 +268,11 @@ cell_loop:
 
 	addi	s3, s3, -1
 	mul	a4, s3, s5			# calcula a distância Y (contadorY x 16)
-	addi	s3, s3, 1
 
 	lb	a0, 0(s0)			# valor do id na célula
 
 	jal	GET_SPRITE			# executa o algoritmo de renderização (render.asm)
+	addi	s3, s3, 1
 
 
 	addi	s4, s4, 1			# soma 1 ao contadorX

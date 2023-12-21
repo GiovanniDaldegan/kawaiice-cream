@@ -274,21 +274,29 @@ eat:
 	sb	t2, 0(t1)
 
 
-	# incrementar a pontuação total
-	li	t3, 100 # pontuação por doce comido
+	# incrementa a pontuação total
+	li	t3, 100				# pontuação por doce comido
 
 	la	t0, points
 	lw	t1, 0(t0)
 	add	t1, t1, t3
 	sw	t1, 0(t0)
 
+	mv	a0, s3
+	mv	a1, s4
+	la	a2, matrix_candy
+	lw	a2, 0(a2)
+	jal	get_cell_address_candy
+	sb	zero, 0(a0)
+
+
 	j	update_player
 
 die:
 	jal	sfx_player_death
 
-	# TODO: select scene pra tela de game over
-	j	EXIT
+	la	a0, 4
+	j	select_scene
 
 
 check_move:
@@ -327,16 +335,27 @@ update_player:
 
 cell_switch:
 	# decide o que fazer com base no id da célula de destino (a0)
-	beq	a0, zero, update_player
-
-	li	t0, 3
-	beq	a0, t0, eat		# come
+	beq	a0, zero, check_candy
 
 	li	t0, 4
 	ble	a0, t0, FINISH_PLAYER		# se não for 3 e for menor ou igual a 4, não movimenta
 
 	li	t0, 5
 	beq	a0, t0, die		# morre
+
+	check_candy:
+	mv	a0, s3
+	mv	a1, s4
+
+	la	a2, matrix_candy
+	lw	a2, 0(a2)
+	jal	get_cell_address_candy
+
+	lb	t0, 0(a0)
+	li	t1, 3
+	beq	t0, t1, eat
+
+	j	update_player
 
 	ret
 

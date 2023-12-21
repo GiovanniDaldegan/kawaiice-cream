@@ -30,7 +30,7 @@ escKey:		.byte 27
 nKey:		.byte 110
 
 enemysPos1: 	.byte 7, 2, 19, 3, 6, 13, 18, 14
-enemysPos2: 	.byte 12, 2, 19, 3, 6, 13, 18, 14
+enemysPos2: 	.byte 12, 2, 19, 7, 6, 8, 13, 14
 
 
 .text
@@ -56,6 +56,9 @@ select_level_2:
 
 
 level_complete:
+	la	t0, candyType
+	sb	zero, 0(t0)
+
 	jal	sfx_level_complete
 
 next_scene:
@@ -140,6 +143,9 @@ menu_setup:
 	la	t1, musicTimer
 	sw	t0, 0(t1)
 
+	la	t0, candyType
+	sb	zero, 0(t0)
+
 
 	la	t0, sceneId
 	sb	zero, 0(t0)
@@ -211,6 +217,16 @@ finish_loop_1:
 	la	t1, matrix
 	sw	t0, 0(t1)			# define a matriz da fase 1
 
+	# copia a matriz de doces
+	la	a0, fase1Doces1Copy
+	la	a1, mapCandy
+	jal	copy_matrix
+
+
+	la	t0, mapCandy
+	la	t1, matrix_candy
+	sw	t0, 0(t1)			# define a matriz de doces
+
 	la	t0, background
 	la	t1, fundomapa1
 	sw	t1, 0(t0)			# define o fundo da fase 1
@@ -224,33 +240,33 @@ finish_loop_1:
 	sb	t2, 1(t0)
 
 	# setup inimigos
-# 	la	t0, enemysPos1
-# 	la	t1, enemysPos
-# 	la	t2, enemysDirections
+ 	la	t0, enemysPos1
+	la	t1, enemysPos
+	la	t2, enemysDirections
 
-# 	li	t3, 0				# t5: contador de inimigos
-# setup_enemys_loop_1:
-# 	li	t4, 4
-# 	bge	t3, t4, finish_enemys_setup_1
+	li	t3, 0				# t3: contador de inimigos
+setup_enemys_loop_1:
+	li	t4, 4
+	bge	t3, t4, finish_enemys_setup_1
 
-# 	lb	t4, 0(t0)
-# 	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
+	lb	t4, 0(t0)
+	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
 
-# 	lb	t4, 1(t0)
-# 	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
+	lb	t4, 1(t0)
+	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
 
-# 	li	t4, 2
-# 	sb	t4, 0(t2)
+	li	t4, 2
+	sb	t4, 0(t2)
 
-# 	addi	t0, t0, 2
-# 	addi	t1, t1, 2
-# 	addi	t2, t2, 1
+	addi	t0, t0, 2
+	addi	t1, t1, 2
+	addi	t2, t2, 1
 
-# 	addi	t3, t3, 1
+	addi	t3, t3, 1
 
-# 	j	setup_enemys_loop_1
+	j	setup_enemys_loop_1
 
-# finish_enemys_setup_1:
+finish_enemys_setup_1:
 
 
 	j	END_MAIN
@@ -301,11 +317,20 @@ cell_loop_2:
 finish_loop_2:
 	la	t0, fase2Copy
 	la	t1, matrix
-	sw	t0, 0(t1)			# define o fundo da fase 1
+	sw	t0, 0(t1)			# define a matriz da fase 2
+
+	# copia a matriz de doces
+	la	a0, fase2Doces1Copy
+	la	a1, mapCandy
+	jal	copy_matrix
+
+	la	t0, mapCandy
+	la	t1, matrix_candy
+	sw	t0, 0(t1)			# define a matriz de doces
 
 	la	t0, background
 	la	t1, fundomapa2
-	sw	t1, 0(t0)			# define o fundo da fase 1
+	sw	t1, 0(t0)			# define o fundo da fase 2
 
 	# setup jogador
 	la	t0, playerPos
@@ -317,33 +342,33 @@ finish_loop_2:
 
 
 	# setup inimigos
-# 	la	t0, enemysPos2
-# 	la	t1, enemysPos
-# 	la	t2, enemysDirections
+	la	t0, enemysPos2
+	la	t1, enemysPos
+	la	t2, enemysDirections
 
-# 	li	t3, 0				# t5: contador de inimigos
-# setup_enemys_loop_2:
-# 	li	t4, 4
-# 	bge	t3, t4, finish_enemys_setup_2
+	li	t3, 0				# t3: contador de inimigos
+setup_enemys_loop_2:
+	li	t4, 4
+	bge	t3, t4, finish_enemys_setup_2
 
-# 	lb	t4, 0(t0)
-# 	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
+	lb	t4, 0(t0)
+	sb	t4, 0(t1)			# copia as posições em enemysPos1 para enemysPos (t3)
 
-# 	lb	t4, 1(t0)
-# 	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
+	lb	t4, 1(t0)
+	sb	t4, 1(t1)			# copia as posições em enemysPos1 para enemysPos (t3 + 1)
 
-# 	li	t4, 2
-# 	sb	t4, 0(t2)
+	li	t4, 2
+	sb	t4, 0(t2)
 
-# 	addi	t0, t0, 2
-# 	addi	t1, t1, 2
-# 	addi	t2, t2, 1
+	addi	t0, t0, 2
+	addi	t1, t1, 2
+	addi	t2, t2, 1
 
-# 	addi	t3, t3, 1
+	addi	t3, t3, 1
 
-# 	j	setup_enemys_loop_2
+	j	setup_enemys_loop_2
 
-# finish_enemys_setup_2:
+finish_enemys_setup_2:
 
 	j	END_MAIN
 
