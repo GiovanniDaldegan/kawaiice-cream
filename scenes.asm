@@ -27,31 +27,40 @@ musicCounter:	.word -1				# contador das notas da música
 
 # [[ MENU ]]
 MENU:
-	la	t0, currentTime
-	lw	t0, 0(t0)
-
-
 	la	t2, musicCounter
 	lb	t1, 0(t2)
 
 	la	t3, song_size
 	lw	t3, 0(t3)
 
-	bge	t2, t3, reset_song
+	bge	t1, t3, reset_song
 
 play_music:
+	li	a7, 30
+	ecall
+	la	t0, currentTime
+	sw	a0, 0(t0)			# salva o instante atual em milissegundos
+
+	mv	t0, a0
+
 	la	t3, musicTimer
 	lw	t4, 0(t3)
 
-	sub	t4, t0, t4			# t4: dif de tempo
+	srli	a0, a0, 1			# o tempo tá saindo negativo, então...
+	srli	t4, t4, 1
 
-	la	t5, song_duration
-	add	t5, t5, t1
-	lw	t5, 0(t5)			# t5: duração da nota atual
+	sub	t4, a0, t4			# t4: dif de tempo
 
-	blt	t4, t5, skip_play_music		# se a dif de tempo for menor que a duração da nota, ingnora a nota
 
 	addi	t1, t1, 1
+
+	la	t5, song_duration
+	li	t6, 4
+	mul	t6, t6, t1
+	add	t5, t5, t6
+	lw	t5, 0(t5)			# t5: duração da nota atual (endereço de song_duration + t1 * 4)
+
+	bltu	t4, t5, skip_play_music		# se a dif de tempo for menor que a duração da nota, ingnora a nota
 
 	la	t4, song_notes
 	add	t4, t4, t1
@@ -61,10 +70,11 @@ play_music:
 	li	a2, 10				#intrumento
 	li	a3, 65				#volume
 
-	j	play_note
+	jal	play_note
 
 	sw	t0, 0(t3)			# atualiza o musicTimer
 	sw	t1, 0(t2)			# salva o musicCounter
+
 
 
 skip_play_music:

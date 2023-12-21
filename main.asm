@@ -22,7 +22,7 @@ sceneId:	.byte 0				# id da cena atual
 matrix:		.word 0				# word com o endereço da matriz atual (variável de acordo com o nível)
 background:	.word 0				# word com o endereço do fundo atual
 
-currentTime:	.word
+currentTime:	.word 0
 timer:		.word 0
 cycleTimer:	.word 0
 
@@ -76,7 +76,7 @@ SCENE:
 	beq	t2, zero, skipCandyCount
 
 	li	t0, 3
-	bgt	t2, t0, skipCandyCount
+	bge	t2, t0, skipCandyCount
 
 	la	t0, candyTotal
 	la	t1, candyCount

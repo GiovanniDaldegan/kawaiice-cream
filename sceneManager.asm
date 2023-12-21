@@ -70,6 +70,9 @@ next_scene:
 
 select_scene:
 	# a0 - id da cena
+	la	t0, musicCounter
+	sw	zero, 0(t0)
+
 	la	t0, playerDirection
 	li	t1, 2
 	sb	t1, 0(t0)
@@ -162,6 +165,9 @@ the_end_setup:
 	j	THE_END
 
 level_1_setup:
+	la	t0, candyCount
+	sb	zero, 0(t0)
+
 	la	t0, timer
 	li	t1, 180
 	sw	t1, 0(t0)			# define o tempo da fase
@@ -251,6 +257,9 @@ finish_loop_1:
 
 
 level_2_setup:
+	la	t0, candyCount
+	sb	zero, 1(t0)
+
 	la	t0, timer
 	li	t1, 180
 	sw	t1, 0(t0)			# define o tempo da fase
