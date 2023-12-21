@@ -23,27 +23,19 @@
 .include "sprites/capabmp.data"
 .include "sprites/gameoverbmp.data"
 .include "sprites/telafinal.data"
-#.include "sprites/"
+#.include "sprites/Pausebmp.data"
 
-#Pausebmp.data
 
 escKey:		.byte 27
 nKey:		.byte 110
-1Key:		.byte 49
-2Key:		.byte 50
-3Key:		.byte 51
 
 enemysPos1: 	.byte 7, 2, 19, 3, 6, 13, 18, 14
 enemysPos2: 	.byte 12, 2, 19, 3, 6, 13, 18, 14
 
 
-
 .text
 
 SCENE_SETUP:
-	la	t0, sceneId
-	lb	t1, 0(t0)			# id da cena atual
-
 	la	t2, key
 	lb	t2, 0(t2)			# t2: tecla pressionada
 
@@ -62,19 +54,22 @@ select_level_2:
 	li	a0, 2
 	j	select_scene
 
-select_level_3:
-	li	a0, 3
-	j	select_scene
 
-# next_level (efeitos sonoros e select_scene)
+level_complete:
+	jal	sfx_level_complete
 
 next_scene:
-	li	a0, 1
+	la	t0, sceneId
+	lb	t1, 0(t0)
+
+	addi	t1, t1, 1
+
+	mv	a0, t1
 	j	select_scene
 
 
 select_scene:
-	# Argumento:	a0 - número de cenas que o programa irá pular
+	# a0 - id da cena
 	la	t0, playerDirection
 	li	t1, 2
 	sb	t1, 0(t0)
@@ -82,54 +77,70 @@ select_scene:
 	la	t0, sceneId
 	lb	t1, 0(t0)			# t1: id da cena atual
 
-	add	t1, t1, a0
-	sb	t1, 0(t0)			# atualiza o sceneId
+	sb	a0, 0(t0)			# atualiza o sceneId
 
 
 	# switch para decidir que cena iniciar
-	beq	t1, zero, menu_setup
+	beq	a0, zero, menu_setup
 
 	li	t2, 1
-	beq	t1, t2, level_1_setup
+	beq	a0, t2, level_1_setup
 
 	li	t2, 2
-	beq	t1, t2, level_2_setup
+	beq	a0, t2, level_2_setup
 
 	li	t2, 3
-	beq	t1, t2, the_end_setup
+	beq	a0, t2, the_end_setup
 
 	li	t2, 4
-	beq	t1, t2, game_over_setup
+	beq	a0, t2, game_over_setup
 
 	li	t2, 5
-	bge	t1, t2, menu_setup
+	bge	a0, t2, menu_setup
 
 	j	END_MAIN
 
 
 scene_switch:
+	la	t0, sceneId
+	lb	t0, 0(t0)			# t0: id da cena atual
+
 	# switch para decidir que cena executar
 	beq	t0, zero, MENU
 
-	li	t2, 1
-	beq	t1, t2, LEVEL_1
+	li	t1, 1
+	beq	t0, t1, LEVEL_1
 
-	li	t2, 2
-	beq	t1, t2, LEVEL_2
+	li	t1, 2
+	beq	t0, t1, LEVEL_2
 
-	li	t2, 3
-	beq	t1, t2, THE_END			# cena final
+	li	t1, 3
+	beq	t0, t1, THE_END			# cena final
 
-	li	t2, 4
-	beq	t1, t2, GAME_OVER		# cena de game over
+	li	t1, 4
+	beq	t0, t1, GAME_OVER		# cena de game over
 
-	li	t2, 5
-	bge	t1, t2, reset
+	li	t1, 5
+	bge	t0, t1, reset
 
 	j	END_MAIN
 
 
 menu_setup:
+	la	t0, key
+	sb	zero, 0(t0)
+
+
+	la	t0, currentTime
+	lw	t0, 0(t0)
+
+	la	t1, musicTimer
+	sw	t0, 0(t1)
+
+
+	la	t0, sceneId
+	sb	zero, 0(t0)
+
 	la	t0, background
 	la	t1, capabmp
 	sw	t1, 0(t0)
@@ -148,7 +159,7 @@ the_end_setup:
 	la	t1, telafinal
 	sw	t1, 0(t0)
 
-	j	GAME_OVER
+	j	THE_END
 
 level_1_setup:
 	la	t0, timer

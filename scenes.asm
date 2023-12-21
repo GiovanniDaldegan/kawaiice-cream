@@ -8,9 +8,16 @@
 
 .data
 
+key1:		.byte 49
+key2:		.byte 50
+key3:		.byte 51
+
 candyTotal:	.byte 16, 14, 20
 candyCount:	.byte 0, 0, 0			# a quantidade de doces pra coletar em cada mapa
 points:		.word 0				# pontuação total
+
+musicTimer:	.word 0				# tempo em ms de quando iniciou da última nota
+musicCounter:	.word -1				# contador das notas da música
 
 
 .text
@@ -20,16 +27,99 @@ points:		.word 0				# pontuação total
 
 # [[ MENU ]]
 MENU:
-	# TODO: seleção de fase (input)
+	la	t0, currentTime
+	lw	t0, 0(t0)
+
+
+	la	t2, musicCounter
+	lb	t1, 0(t2)
+
+	la	t3, song_size
+	lw	t3, 0(t3)
+
+	bge	t2, t3, reset_song
+
+play_music:
+	la	t3, musicTimer
+	lw	t4, 0(t3)
+
+	sub	t4, t0, t4			# t4: dif de tempo
+
+	la	t5, song_duration
+	add	t5, t5, t1
+	lw	t5, 0(t5)			# t5: duração da nota atual
+
+	blt	t4, t5, skip_play_music		# se a dif de tempo for menor que a duração da nota, ingnora a nota
+
+	addi	t1, t1, 1
+
+	la	t4, song_notes
+	add	t4, t4, t1
+	lb	a0, 0(t4)
+	
+	mv	a1, t5				#duração 
+	li	a2, 10				#intrumento
+	li	a3, 65				#volume
+
+	j	play_note
+
+	sw	t0, 0(t3)			# atualiza o musicTimer
+	sw	t1, 0(t2)			# salva o musicCounter
+
+
+skip_play_music:
+	la	t0, key
+	lb	t0, 0(t0)
+
+	la	t1, key1
+	lb	t1, 0(t1)
+	beq	t0, t1, select_level_1
+
+	la	t1, key2
+	lb	t1, 0(t1)
+	beq	t0, t1, select_level_2
+
+	la	t1, key3
+	lb	t1, 0(t1)
+	beq	t0, t1, EXIT
 
 	j	END_MAIN
 
+
+reset_song:
+	# t2: endereço do musicCounter
+	sb	zero, 0(t2)
+
+	j	play_music
+
 GAME_OVER:
+	la	t0, key
+	lb	t0, 0(t0)
+
+	la	t1, key1
+	lb	t1, 0(t1)
+	beq	t0, t1, menu_setup
+
+	la	t1, key2
+	lb	t1, 0(t1)
+	beq	t0, t1, EXIT
+
 
 	j	END_MAIN
 
 
 THE_END:
+	la	t0, key
+	lb	t0, 0(t0)
+
+	la	t1, key1
+	lb	t1, 0(t1)
+	beq	t0, t1, menu_setup
+
+	la	t1, key2
+	lb	t1, 0(t1)
+	beq	t0, t1, EXIT
+
 
 	j	END_MAIN
 
@@ -114,6 +204,7 @@ skip_timer_2:
 	jal	RENDER_MATRIX
 
 	j	END_MAIN
+
 
 
 

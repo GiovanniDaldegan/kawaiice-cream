@@ -13,7 +13,6 @@
 
 .data
 
-
 returnAddress0:	.word 0				# word para salvar o ra quando forem necessários 2 "jals"
 returnAddress1:	.word 0				# word para salvar o ra quando forem necessários 3 "jals"
 
@@ -26,6 +25,7 @@ background:	.word 0				# word com o endereço do fundo atual
 currentTime:	.word
 timer:		.word 0
 cycleTimer:	.word 0
+
 
 .text
 
@@ -54,9 +54,10 @@ GAME_INPUT:
 
 # [ Renderização do fundo ]
 render_background:
+
 	la	a0, background			# carrega o fundo
 	lw	a0, 0(a0)
-	lw	t0, 0(t0)
+	lw	t0, 0(a0)
 	beq	t0, zero, SCENE			# se o endereço do fundo for 0, pula a renderização dele
 
 	la	t0, frame
@@ -85,10 +86,10 @@ SCENE:
 	add	t0, t0, t2
 	add	t1, t1, t2
 
-	lb	t0, 0(t0)
-	lb	t1, 0(t1)
+	lb	t0, 0(t0)			# carrega o candyTotal de acordo com a fase (sceneId - 1)
+	lb	t1, 0(t1)			# carrega o candyCount de acordo com a fase (sceneId - 1)
 
-	bge	t1, t0, next_scene
+	bge	t1, t0, level_complete
 
 	skipCandyCount:
 
@@ -108,7 +109,7 @@ END_MAIN:
 
 	# game tick
 	li	a7, 32
-	li	a0, 50
+	li	a0, 45
 	ecall
 
 	j	MAIN_LOOP
