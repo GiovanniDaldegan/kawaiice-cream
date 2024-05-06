@@ -18,9 +18,11 @@ candyType:	.byte 0
 points:		.word 0				# pontuação total
 
 musicTimer:	.word 0				# tempo em ms de quando iniciou da última nota
-musicCounter:	.word -1				# contador das notas da música
+musicCounter:	.word -1			# contador das notas da música
 
-matrix_candy:	.word 0
+enemyTimer:	.word 0
+
+matrix_candy:	.word 0				# ponteiro para uma matriz de doces
 
 
 .text
@@ -136,24 +138,26 @@ THE_END:
 
 # [[ Nível 1 ]]
 LEVEL_1:
+
 	# timer do nível
 	li	a7, 30
 	ecall
-	la	t0, currentTime			# salva o intante atual em milissegundos
+	la	t0, currentTime			# salva o instante atual em milissegundos
 	sw	a0, 0(t0)
 
+
 	la	t0, cycleTimer
-	lw	t1, 0(t0)
+	lw	t0, 0(t0)
 
-	sub	a0, a0, t1			# calcula a diferença de tempo de um tick em milissegundos
+	sub	a0, a0, t0			# calcula a diferença de tempo de um tick em milissegundos
 
-	li	t2, 1000
-	blt	a0, t2, skip_timer_1		# se a diferença menos de 1 seg, não atualiza o timer
+	li	t0, 1000
+	blt	a0, t0, skip_timer_1		# se a diferença menos de 1 seg, não atualiza o timer
 
-	la	t0, timer
-	lw	t1, 0(t0)
-	addi	t1, t1, -1
-	sw	t1, 0(t0)			# subtrái o tempo por 1 e atualiza o valor
+	la	t0, levelTimer
+	lw	t0, 0(t0)
+	addi	t0, t0, -1
+	sw	t0, 0(t0)			# subtrái o tempo por 1 e atualiza o valor
 
 	li	a7, 30
 	ecall
@@ -196,12 +200,10 @@ LEVEL_2:
 	li	t2, 1000
 	blt	a0, t2, skip_timer_2		# se a diferença menos de 1 seg, não atualiza o timer
 
-	la	t0, timer
+	la	t0, levelTimer
 	lw	t1, 0(t0)
-
-
 	addi	t1, t1, -1
-	sw	t1, 0(t0)			# subtrái o tempo por 1 e atualiza o valor
+	sw	t1, 0(t0)			# subtrai o tempo por 1 e atualiza o valor
 
 	li	a7, 30
 	ecall
@@ -272,11 +274,12 @@ cell_loop:
 	lb	a0, 0(s0)			# valor do id na célula
 
 	jal	GET_SPRITE			# executa o algoritmo de renderização (render.asm)
+
 	addi	s3, s3, 1
-
-
 	addi	s4, s4, 1			# soma 1 ao contadorX
 	addi	s0, s0, 1			# soma 1 ao enredeço da matriz
+
+
 
 	bge	s4, s2, line_loop		# se o contadorX for igual ou maior à largura, inicia a próxima linha
 

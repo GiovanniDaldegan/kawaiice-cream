@@ -22,12 +22,18 @@ sceneId:	.byte 0				# id da cena atual
 matrix:		.word 0				# word com o endereço da matriz atual (variável de acordo com o nível)
 background:	.word 0				# word com o endereço do fundo atual
 
-currentTime:	.word 0
-timer:		.word 0
-cycleTimer:	.word 0
+currentTime:	.word 0				# último instante medido
+gameTickTimer:	.word 0				# temporizador de tick do jogo
+levelTimer:	.word 0				# temporizador das fases (segundos)
+cycleTimer:	.word 0				# 
 
 
 .text
+	li	a7, 30
+	ecall
+	la	t0, gameTickTimer
+	sw	a0, 0(t0)			# instante inicial do jogo
+
 
 	jal	menu_setup			# prepara o menu
 
@@ -51,10 +57,20 @@ GAME_INPUT:
 	la	t0, key
 	sb	a0, 0(t0)			# salva a tecla em "key" (ASCII)
 
+GAME_TICK:
+	# li	a7, 30
+	# ecall
+
+	# la	t0, gameTickTimer
+	# lw	t0, 0(t0)
+
+	# sub	a0, a0, t0
+	# li	t1, 120
+	# ble	a0, t1, MAIN_LOOP
+
 
 # [ Renderização do fundo ]
 render_background:
-
 	la	a0, background			# carrega o fundo
 	lw	a0, 0(a0)
 	lw	t0, 0(a0)
@@ -99,7 +115,7 @@ SCENE:
 
 	check_next_candy:
 
-	beq	t1, t0, next_candy
+	beq	t1, t0, next_candy		# candyCount == candyTotal
 
 	j	check_level
 
@@ -111,7 +127,7 @@ SCENE:
 	sb	zero, 0(t0)
 	sb	zero, 1(t0)
 
-	bne	t2, zero, next_candy_2
+	bne	t2, zero, next_candy_2		# se sceneId - 1 =/= 0
 
 	next_candy_1:
 	la	t0, matrix_candy
@@ -172,43 +188,15 @@ get_cell_address:
 	# 
 	# Input:	a0: posX
 	# 		a1: posY
-	# 
-	# Output:	a0: endereço
-	########################################
-
-	la	t0, matrix
-	lw	t0, 0(t0)
-	lw	t1, 0(t0)			# t1: tamanho horizontal da matriz
-
-	addi	t0, t0, 8			# pula largura e altura
-
-	addi	a0, a0, -1
-	addi	a1, a1, -1
-
-	mul	t2, a1, t1			# calcula a linha
-	add	t2, t2, a0			# calcula a coluna na linha
-	add	a0, t0, t2			# calcula o endereço da célula e guarda em a0
-
-	ret
-
-get_cell_address_candy:
-	########################################
-	# Dadas as coordenadas de uma célula na
-	# matriz, retorna o enredeço dela
-	# 
-	# Input:	a0: posX
-	# 		a1: posY
 	# 		a2: matriz
 	# 
 	# Output:	a0: endereço
 	########################################
 
+	lw	a2, 0(a2)
 	lw	t1, 0(a2)			# t1: tamanho horizontal da matriz
 
 	addi	a2, a2, 8			# pula largura e altura
-
-	addi	a0, a0, -1
-	addi	a1, a1, -1
 
 	mul	t2, a1, t1			# calcula a linha
 	add	t2, t2, a0			# calcula a coluna na linha
@@ -216,15 +204,21 @@ get_cell_address_candy:
 
 	ret
 
+
 copy_matrix:
-	# a0: endereço matriz 1
-	# a1; endereço matriz 2
+	########################################
+	# Dadas duas matrizes, copia a primeira
+	# na segunda, byte por byte.
+	# 
+	# Input:	a0: matriz 1
+	# 		a1: matriz 2
+	########################################
 
 	lw	t0, 0(a0)			# t0: largura
 	lw	t1, 4(a0)			# t1: altura
 
 	mul	t0, t0, t1
-	addi	t0, t0, -1			# t0: n de células
+	addi	t0, t0, -1			# t0: índice da última célula
 
 	addi	a0, a0, 8
 	addi	a1, a1, 8
