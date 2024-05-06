@@ -19,8 +19,6 @@ enemysDirections:.byte 2, 2, 2, 2
 
 enemyCycleTimer:.word 0
 
-porra: .string "\n"
-
 
 .text
 
@@ -59,6 +57,7 @@ enemy_loop:
 
 	mv	a0, s1
 	mv	a1, s2
+	la	a2, matrix
 	jal	get_cell_address
 
 	sb	zero, 0(a0)			# limpa o espaço que o inimigo está ocupando na matriz
@@ -96,6 +95,7 @@ enemy_loop:
 
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address
 
 	lb	t0, 0(a0)
@@ -139,6 +139,7 @@ enemy_move_up:
 
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -163,6 +164,7 @@ enemy_move_down:
 
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -187,6 +189,7 @@ enemy_move_left:
 
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -211,6 +214,7 @@ enemy_move_right:
 
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -243,6 +247,7 @@ enemy_give_up:
 set_enemy_pos:
 	mv	a0, s3
 	mv	a1, s4
+	la	a2, matrix
 	jal	get_cell_address		# calcula o endereço a partir de s3 e s4
 
 	li	t0, 5
@@ -257,16 +262,6 @@ set_enemy_pos:
 
 	sb	s3, 0(t0)
 	sb	s4, 1(t0)
-
-	# teste
-	#li	a7, 1
-	#mv	a0, s0
-	#ecall
-	#li	a7, 4
-	#la	a0, porra
-	#ecall
-
-
 
 	j	enemy_loop
 

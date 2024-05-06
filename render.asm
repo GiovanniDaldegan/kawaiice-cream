@@ -1,21 +1,22 @@
 ########################################################
-# render.s - KawaiIce Cream - Projeto ISC 2023-2
+# render - KawaiIce Cream - Projeto ISC 2023-2
 #
 # Descrição: escreve os bytes de um bmp na memória do
 # bitmap display para renderização.
 #
 # Input:	a0: id do sprite
 #		a1: frame (0, 1)
+#		a2: endereço da matriz ???
 #		a3: distância x do pivot
 #		a4: distância y do pivot
 ########################################################
-#		t0: endereço bitmap display
-#		t1: endereço do bmp
-#		t2: altura
-#		t3: largura
-#		t4: contadorY
-#		t5: contadorX
-#		t6: valores dos 4 pixels
+#	t0: endereço bitmap display
+#	t1: endereço do bmp
+#	t2: altura
+#	t3: largura
+#	t4: contadorY
+#	t5: contadorX
+#	t6: valores dos 4 pixels
 ########################################################
 
 .data
@@ -64,11 +65,9 @@ GET_SPRITE:
 	beq	t0, t1, get_sprite_level_2
 
 get_sprite_level_1:
-	#beq	a0, zero, block_collectible		# buga tudo
-
 	# bloco quebrável
 	li	t0, 2
-	beq	a0, t0, sprite_01_1
+	beq	a0, t0, block_collectible_1
 
 	# coletável
 	li	t0, 3
@@ -107,34 +106,33 @@ sprite_candy_1_2:
 
 	j	RENDER
 
-block_collectible:
-	
-	#
+block_collectible_1:
+	la	t0, returnAddress1
+	sw	ra, 0(t0)
+
 	mv	t6, a0
 	mv	t5, a1
-	mv	t4, a2
-	#
 
 	mv	a0, s4
 	mv	a1, s3
 	la	a2, matrix_candy
-	lw	a2, 0(a2)
-	jal	get_cell_address_candy
-
-
+	jal	get_cell_address
 	lb	t0, 0(a0)
-	li	t1, 3
-	#
+
+
 	mv	a0, t6
 	mv	a1, t5
-	mv	a2, t4
-	#
+
+	la	t1, returnAddress1
+	lw	ra, 0(t1)
+
+	li	t1, 3
 	beq	t0, t1, sprite_03_1
 
-	j	END_RENDER
+	j	sprite_01_1
 
 sprite_03_1:
-	j	END_RENDER
+
 	la	a0, blococoguitem
 	
 	j	RENDER
@@ -145,11 +143,9 @@ sprite_04_1:
 
 
 get_sprite_level_2:
-	#beq	a0, zero, block_collectible
-
 	# bloco quebrável
 	li	t0, 2
-	beq	a0, t0, sprite_01_2
+	beq	a0, t0, block_collectible_2
 
 	# coletável
 	li	t0, 3
@@ -193,19 +189,29 @@ sprite_candy_2_2:
 	j	RENDER
 
 
-block_collectible:
-	j EXIT
+block_collectible_2:
+	la	t0, returnAddress1
+	sw	ra, 0(t0)
+
+	mv	t6, a0
+	mv	t5, a1
+
 	mv	a0, s4
 	mv	a1, s3
 	la	a2, matrix_candy
-	lw	a2, 0(a2)
-	jal	get_cell_address_candy
-
+	jal	get_cell_address
 	lb	t0, 0(a0)
+
+	mv	a0, t6
+	mv	a1, t5
+
+	la	t1, returnAddress1
+	lw	ra, 0(t1)
+
 	li	t1, 3
 	beq	t0, t1, sprite_03_2
 
-	ret
+	j	sprite_01_2
 
 
 sprite_03_2:

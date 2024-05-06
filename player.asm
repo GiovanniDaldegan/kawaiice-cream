@@ -1,23 +1,23 @@
 ########################################################
-# player.s - KawaiIce Cream - Projeto ISC 2023-2
+# player - KawaiIce Cream - Projeto ISC 2023-2
 #
 # Descrição: script responsável pela movimentação e
 # ações do jogador.
 ########################################################
-#		Movimentação:
-#		s0: tecla pressionada
-#		s1: posX antiga
-#		s2: posY antiga
-#		s3: posX nova
-#		s4: posY nova
-#		
-#		Ataque:
-#		s0: tecla pressionada
-#		s1: posX dos blocos na fileira do ataque
-#		s2: posY dos blocos na fileira do ataque
-#		s3: valor para adicionar à posX para obter a célula à frente
-#		s4: valor para adicionar à posY para obter a célula à frente
-#		s5: binário indicando se cria (1) ou quebra (0) blocos
+#	Movimentação:
+#	s0: tecla pressionada
+#	s1: posX antiga
+#	s2: posY antiga
+#	s3: posX nova
+#	s4: posY nova
+#	
+#	Ataque:
+#	s0: tecla pressionada
+#	s1: posX dos blocos na fileira do ataque
+#	s2: posY dos blocos na fileira do ataque
+#	s3: valor para adicionar à posX para obter a célula à frente
+#	s4: valor para adicionar à posY para obter a célula à frente
+#	s5: binário indicando se cria (1) ou quebra (0) blocos
 ########################################################
 
 
@@ -171,9 +171,8 @@ attack_first_block:
 
 	add	a0, a0, s3
 	add	a1, a1, s4
-
+	la	a2, matrix
 	jal	get_cell_address
-
 	lb	t0, 0(a0)
 	
 	beq	t0, zero, attack_create_sfx	# se o id da célula for 0, ele vai criar blocos
@@ -199,7 +198,7 @@ attack_create_loop:
 
 	mv	a0, s1
 	mv	a1, s2
-
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -232,7 +231,7 @@ attack_destroy_loop:
 
 	mv	a0, s1
 	mv	a1, s2
-
+	la	a2, matrix
 	jal	get_cell_address
 	lb	t0, 0(a0)
 
@@ -263,7 +262,7 @@ eat:
 	# incrementar o contador de doces
 	la	t0, sceneId
 	lb	t0, 0(t0)
-	addi	t0, t0, -1
+	addi	t0, t0, -1			# índice da matriz
 
 	la	t1, candyCount
 	add	t1, t1, t0
@@ -285,8 +284,7 @@ eat:
 	mv	a0, s3
 	mv	a1, s4
 	la	a2, matrix_candy
-	lw	a2, 0(a2)
-	jal	get_cell_address_candy
+	jal	get_cell_address
 	sb	zero, 0(a0)
 
 
@@ -302,16 +300,37 @@ die:
 check_move:
 	mv	a0, s3
 	mv	a1, s4
-
+	la	a2, matrix
 	jal	get_cell_address
 	lb	a0, 0(a0)
 
-	j	cell_switch
+	# cell switch - decide o que fazer com base no id da célula de destino (a0)
+	beq	a0, zero, check_candy
+
+	li	t0, 4
+	ble	a0, t0, FINISH_PLAYER		# se não for 3 e for menor ou igual a 4, não movimenta
+
+	li	t0, 5
+	beq	a0, t0, die			# morre
+
+	check_candy:
+	mv	a0, s3
+	mv	a1, s4
+
+	la	a2, matrix_candy
+	jal	get_cell_address
+
+	lb	t0, 0(a0)
+	li	t1, 3
+	beq	t0, t1, eat
+
+	j	update_player
+
 
 update_player:
 	mv	a0, s3
 	mv	a1, s4
-
+	la	a2, matrix
 	jal	get_cell_address
 
 	# coloca o jogador na nova posição na matriz
@@ -322,6 +341,7 @@ update_player:
 	# retira o jogador da antiga posição na matriz
 	mv	a0, s1
 	mv	a1, s2
+	la	a2, matrix
 	jal	get_cell_address
 
 	sb	zero, 0(a0)
@@ -333,31 +353,6 @@ update_player:
 	j	FINISH_PLAYER
 
 
-cell_switch:
-	# decide o que fazer com base no id da célula de destino (a0)
-	beq	a0, zero, check_candy
-
-	li	t0, 4
-	ble	a0, t0, FINISH_PLAYER		# se não for 3 e for menor ou igual a 4, não movimenta
-
-	li	t0, 5
-	beq	a0, t0, die		# morre
-
-	check_candy:
-	mv	a0, s3
-	mv	a1, s4
-
-	la	a2, matrix_candy
-	lw	a2, 0(a2)
-	jal	get_cell_address_candy
-
-	lb	t0, 0(a0)
-	li	t1, 3
-	beq	t0, t1, eat
-
-	j	update_player
-
-	ret
 
 
 FINISH_PLAYER:

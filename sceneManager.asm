@@ -29,8 +29,10 @@
 escKey:		.byte 27
 nKey:		.byte 110
 
-enemysPos1: 	.byte 7, 2, 19, 3, 6, 13, 18, 14
-enemysPos2: 	.byte 12, 2, 19, 7, 6, 8, 13, 14
+enemysPos1: 	.byte 6, 1, 18, 2, 5, 12, 17, 13
+enemysPos2: 	.byte 11, 1, 18, 6, 5, 7, 12, 13
+
+levelPlayerPos:	.byte 11, 12, 14, 3
 
 
 .text
@@ -174,7 +176,7 @@ level_1_setup:
 	la	t0, candyCount
 	sb	zero, 0(t0)
 
-	la	t0, timer
+	la	t0, levelTimer
 	li	t1, 180
 	sw	t1, 0(t0)			# define o tempo da fase
 
@@ -232,9 +234,11 @@ finish_loop_1:
 	sw	t1, 0(t0)			# define o fundo da fase 1
 
 	# setup jogador
+	la	t0, levelPlayerPos
+	lb	t1, 0(t0)
+	lb	t2, 1(t0)
+
 	la	t0, playerPos
-	li	t1, 12
-	li	t2, 13
 
 	sb	t1, 0(t0)
 	sb	t2, 1(t0)
@@ -276,7 +280,7 @@ level_2_setup:
 	la	t0, candyCount
 	sb	zero, 1(t0)
 
-	la	t0, timer
+	la	t0, levelTimer
 	li	t1, 180
 	sw	t1, 0(t0)			# define o tempo da fase
 
@@ -333,10 +337,11 @@ finish_loop_2:
 	sw	t1, 0(t0)			# define o fundo da fase 2
 
 	# setup jogador
-	la	t0, playerPos
-	li	t1, 15
-	li	t2, 4
+	la	t0, levelPlayerPos
+	lb	t1, 2(t0)
+	lb	t2, 3(t0)
 
+	la	t0, playerPos
 	sb	t1, 0(t0)			# define a posX
 	sb	t2, 1(t0)			# define a posY
 
